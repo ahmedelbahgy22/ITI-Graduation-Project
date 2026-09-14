@@ -1,0 +1,217 @@
+﻿<div class="list-container">
+  <!-- Metrics Dashboard Row -->
+  <div class="metrics-grid">
+    <div class="metric-card primary">
+      <div class="metric-icon">💵</div>
+      <div class="metric-content">
+        <span class="metric-label">Filtered View Total</span>
+        <span class="metric-value">{{ filteredTotal() | currency }}</span>
+        <span class="metric-sub">Running sum of matching items</span>
+      </div>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-icon">📊</div>
+      <div class="metric-content">
+        <span class="metric-label">Matching Transactions</span>
+        <span class="metric-value">{{ filteredExpenses().length }}</span>
+        <span class="metric-sub">Out of {{ expenseService.expenses().length }} total</span>
+      </div>
+    </div>
+
+    <div class="metric-card warning">
+      <div class="metric-icon">⚠️</div>
+      <div class="metric-content">
+        <span class="metric-label">Over Budget (> ${{ budgetThreshold() }})</span>
+        <span class="metric-value">{{ overBudgetCount() }}</span>
+        <span class="metric-sub">Highlighted transactions</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter & Search Toolbar -->
+  <div class="toolbar-card">
+    <div class="toolbar-row">
+      <!-- Search Input -->
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input
+          type="text"
+          placeholder="Filter by note or category..."
+          [ngModel]="searchTerm()"
+          (ngModelChange)="onSearchChange($event)"
+        />
+        @if (searchTerm()) {
+          <button class="clear-btn" (click)="onSearchChange('')" title="Clear search">✕</button>
+        }
+      </div>
+
+      <!-- Category Filter -->
+      <div class="filter-group">
+        <label for="categoryFilter">Category:</label>
+        <select
+          id="categoryFilter"
+          [ngModel]="selectedCategory()"
+          (ngModelChange)="onCategoryChange($event)"
+        >
+          @for (cat of categories; track cat) {
+            <option [value]="cat">
+              @if (cat !== 'All') {
+                {{ cat | categoryIcon }}
+              }
+              {{ cat }}
+            </option>
+          }
+        </select>
+      </div>
+
+      <!-- Sort Filter -->
+      <div class="filter-group">
+        <label for="sortBy">Sort By:</label>
+        <select
+          id="sortBy"
+          [ngModel]="sortBy()"
+          (ngModelChange)="onSortChange($event)"
+        >
+          <option value="date-desc">📅 Date: Newest First</option>
+          <option value="date-asc">📅 Date: Oldest First</option>
+          <option value="amount-desc">💰 Amount: Highest First</option>
+          <option value="amount-asc">💰 Amount: Lowest First</option>
+        </select>
+      </div>
+
+      <!-- Budget Threshold Setting -->
+      <div class="filter-group threshold-group">
+        <label for="thresholdInput" title="Custom threshold for highlight directive">
+          Highlight Threshold ($):
+        </label>
+        <input
+          id="thresholdInput"
+          type="number"
+          min="1"
+          step="10"
+          [ngModel]="budgetThreshold()"
+          (ngModelChange)="onThresholdChange($event)"
+        />
+      </div>
+    </div>
+  </div>
+
+  <!-- Server Loading / Error State -->
+  @if (expenseService.loading() && expenseService.expenses().length === 0) {
+    <div class="state-box loading">
+      <div class="spinner"></div>
+      <p>Loading expenses from json-server...</p>
+    </div>
+  }
+
+  @if (expenseService.error()) {
+    <div class="state-box error">
+      <div class="error-header">
+        <span>⚠️ {{ expenseService.error() }}</span>
+        <button class="btn btn-retry" (click)="reload()">Retry</button>
+      </div>
+      <p class="error-hint">
+        Make sure json-server is running on port 3000 (<code>npm run server</code>).
+      </p>
+    </div>
+  }
+
+  <!-- Expenses Table -->
+  <div class="table-wrapper">
+    <table class="expenses-table">
+      <thead>
+        <tr>
+          <th>Category</th>
+          <th>Date</th>
+          <th>Note / Description</th>
+          <th class="text-right">Amount</th>
+          <th class="text-center">Status</th>
+          <th class="text-center">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (expense of filteredExpenses(); track expense.id) {
+          <tr
+            [appHighlightOverBudget]="expense.amount"
+            [threshold]="budgetThreshold()"
+            [class.row-editing]="expenseService.editingExpense()?.id === expense.id"
+          >
+            <!-- Category with Pipe Icon -->
+            <td class="category-cell">
+              <span class="category-icon">{{ expense.category | categoryIcon }}</span>
+              <span class="category-name">{{ expense.category }}</span>
+            </td>
+
+            <!-- Date -->
+            <td class="date-cell">
+              {{ expense.date | date: 'mediumDate' }}
+            </td>
+
+            <!-- Note -->
+            <td class="note-cell">
+              <span class="note-text" [title]="expense.note">
+                {{ expense.note || '—' }}
+              </span>
+            </td>
+
+            <!-- Amount -->
+            <td class="amount-cell text-right">
+              <span class="amount-text" [class.over-budget-text]="expense.amount > budgetThreshold()">
+                {{ expense.amount | currency }}
+              </span>
+            </td>
+
+            <!-- Over Budget Badge -->
+            <td class="status-cell text-center">
+              @if (expense.amount > budgetThreshold()) {
+                <span class="badge badge-danger" title="Exceeds ${{ budgetThreshold() }} threshold">
+                  > ${{ budgetThreshold() }}
+                </span>
+              } @else {
+                <span class="badge badge-normal">Normal</span>
+              }
+            </td>
+
+            <!-- Actions -->
+            <td class="actions-cell text-center">
+              <button
+                class="action-btn edit-btn"
+                (click)="onEdit(expense)"
+                title="Edit expense"
+              >
+                ✏️ Edit
+              </button>
+              <button
+                class="action-btn delete-btn"
+                (click)="onDelete(expense)"
+                title="Delete expense"
+              >
+                🗑️
+              </button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="6" class="empty-state">
+              <div class="empty-content">
+                <span class="empty-icon">📂</span>
+                <h4>No expenses found</h4>
+                <p>Try adjusting your search query, selecting another category, or add a new expense above.</p>
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+      @if (filteredExpenses().length > 0) {
+        <tfoot>
+          <tr class="total-row">
+            <td colspan="3" class="total-label">Total of {{ filteredExpenses().length }} entries:</td>
+            <td class="total-amount text-right">{{ filteredTotal() | currency }}</td>
+            <td colspan="2"></td>
+          </tr>
+        </tfoot>
+      }
+    </table>
+  </div>
+</div>

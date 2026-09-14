@@ -1,0 +1,46 @@
+﻿<div class="app-layout">
+  <!-- Top Navigation Bar -->
+  <header class="navbar">
+    <div class="nav-brand">
+      <span class="brand-logo">💰</span>
+      <div>
+        <h1 class="brand-title">ExpenseTracker <span class="badge-ai">AI-Powered</span></h1>
+        <p class="brand-subtitle">Angular Signals • Reactive Forms • json-server • n8n Webhook</p>
+      </div>
+    </div>
+
+    <div class="nav-meta">
+      <div class="status-indicator" [class.status-online]="!expenseService.error()" [class.status-offline]="expenseService.error()">
+        <span class="dot"></span>
+        <span>{{ expenseService.error() ? 'Backend Disconnected' : 'json-server Connected' }}</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Layout -->
+  <main class="main-content">
+    <!-- Left Column: Form -->
+    <aside class="sidebar-column">
+      <app-expense-form></app-expense-form>
+    </aside>
+
+    <!-- Right Column: List, Filters, Metrics -->
+    <section class="content-column">
+      <app-expense-list></app-expense-list>
+    </section>
+  </main>
+
+  <!-- Floating AI Assistant -->
+  <app-chatbot></app-chatbot>
+
+  <!-- Footer -->
+  <footer class="app-footer">
+    <div class="footer-content">
+      <span>Built with Angular Standalone Components & Signals</span>
+      <span class="separator">•</span>
+      <span>REST Endpoint: <code>http://localhost:3000/expenses</code></span>
+      <span class="separator">•</span>
+      <span>n8n AI Webhook Integration</span>
+    </div>
+  </footer>
+</div>

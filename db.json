@@ -1,0 +1,63 @@
+{
+  "expenses": [
+    {
+      "id": "1",
+      "amount": 24.5,
+      "category": "Food",
+      "date": "2026-03-10",
+      "note": "Lunch at Italian Bistro"
+    },
+    {
+      "id": "2",
+      "amount": 45,
+      "category": "Transport",
+      "date": "2026-03-11",
+      "note": "Weekly metro transit pass"
+    },
+    {
+      "id": "3",
+      "amount": 129.99,
+      "category": "Shopping",
+      "date": "2026-03-11",
+      "note": "Ergonomic desk chair accessory"
+    },
+    {
+      "id": "4",
+      "amount": 160,
+      "category": "Bills",
+      "date": "2026-03-12",
+      "note": "Monthly electricity & fiber internet bill"
+    },
+    {
+      "id": "5",
+      "amount": 18,
+      "category": "Entertainment",
+      "date": "2026-03-12",
+      "note": "IMAX movie ticket"
+    },
+    {
+      "id": "6",
+      "amount": 15.75,
+      "category": "Other",
+      "date": "2026-03-13",
+      "note": "Postal parcel delivery fee"
+    },
+    {
+      "id": "7",
+      "amount": 115.5,
+      "category": "Food",
+      "date": "2026-03-13",
+      "note": "Bulk grocery run at supermarket"
+
+
+    },
+    {
+      "amount": 10,
+      "category": "Food",
+      "date": "2026-09-13",
+      "note": "",
+      "id": "I8mlKOD"
+
+    }
+  ]
+}

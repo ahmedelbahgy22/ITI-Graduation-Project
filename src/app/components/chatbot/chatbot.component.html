@@ -1,0 +1,136 @@
+﻿<!-- Floating Chatbot Launcher Button -->
+@if (!isOpen()) {
+  <button class="chat-launcher" (click)="toggleOpen()" title="Open AI Financial Assistant">
+    <span class="launcher-icon">🤖</span>
+    <span class="launcher-text">AI Assistant</span>
+    <span class="launcher-badge">n8n</span>
+  </button>
+}
+
+<!-- Chatbot Window -->
+@if (isOpen()) {
+  <div class="chat-window" [class.minimized]="isMinimized()">
+    <!-- Header -->
+    <div class="chat-header">
+      <div class="header-left">
+        <div class="bot-avatar">🤖</div>
+        <div class="header-info">
+          <div class="bot-title">
+            <h4>AI Expense Copilot</h4>
+            <span class="status-dot"></span>
+          </div>
+          <span class="header-meta">Session: {{ chatService.sessionId.substring(0, 16) }}...</span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button
+          class="icon-btn"
+          (click)="clearChat()"
+          title="Clear chat history"
+        >
+          🧹
+        </button>
+        <button
+          class="icon-btn"
+          (click)="toggleMinimize()"
+          title="{{ isMinimized() ? 'Expand' : 'Minimize' }}"
+        >
+          {{ isMinimized() ? '🔼' : '🔽' }}
+        </button>
+        <button
+          class="icon-btn close-btn"
+          (click)="toggleOpen()"
+          title="Close chat"
+        >
+          ✕
+        </button>
+      </div>
+    </div>
+
+    <!-- Body (Visible when not minimized) -->
+    @if (!isMinimized()) {
+      <!-- Messages History -->
+      <div class="messages-container" #scrollContainer>
+        @for (msg of chatService.messages(); track msg.id) {
+          <div class="message-row" [class.user-row]="msg.sender === 'user'" [class.ai-row]="msg.sender === 'ai'">
+            @if (msg.sender === 'ai') {
+              <div class="avatar-small">🤖</div>
+            }
+
+            <div
+              class="message-bubble"
+              [class.user-bubble]="msg.sender === 'user'"
+              [class.ai-bubble]="msg.sender === 'ai'"
+              [class.error-bubble]="msg.isError"
+            >
+              <div class="bubble-text">{{ msg.text }}</div>
+              <div class="bubble-time">
+                {{ msg.timestamp | date: 'shortTime' }}
+              </div>
+            </div>
+
+            @if (msg.sender === 'user') {
+              <div class="avatar-small user-avatar">👤</div>
+            }
+          </div>
+        }
+
+        <!-- Loading Indicator -->
+        @if (chatService.isLoading()) {
+          <div class="message-row ai-row">
+            <div class="avatar-small">🤖</div>
+            <div class="message-bubble ai-bubble loading-bubble">
+              <div class="typing-indicator">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+              <span class="typing-text">AI is analyzing current expenses...</span>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Quick Prompt Suggestions -->
+      <div class="quick-prompts-bar">
+        @for (prompt of quickPrompts; track prompt) {
+          <button
+            type="button"
+            class="prompt-chip"
+            (click)="sendQuickPrompt(prompt)"
+            [disabled]="chatService.isLoading()"
+          >
+            {{ prompt }}
+          </button>
+        }
+      </div>
+
+      <!-- Input Footer -->
+      <div class="chat-footer">
+        <div class="input-container">
+          <textarea
+            rows="1"
+            placeholder="Ask AI about your expenses (e.g., 'What is my highest expense?')..."
+            [(ngModel)]="messageText"
+            (keydown)="onKeyDown($event)"
+            [disabled]="chatService.isLoading()"
+          ></textarea>
+
+          <button
+            type="button"
+            class="send-btn"
+            (click)="onSendMessage()"
+            [disabled]="!messageText.trim() || chatService.isLoading()"
+            title="Send Message"
+          >
+            ➤
+          </button>
+        </div>
+        <div class="footer-note">
+          <span>Target Webhook: <code>{{ webhookEndpoint }}</code></span>
+        </div>
+      </div>
+    }
+  </div>
+}
